@@ -208,7 +208,47 @@
   </table>
 
 <h2>배너 이미지 업로드</h2>
-<input type="file" id="bannerFiles" multiple />
+<!-- 숨겨진 파일 업로드 input -->
+<input type="file" id="bannerFiles" multiple style="display: none;" />
+<!-- 파일 업로드를 트리거하는 버튼 -->
+<button id="uploadBannerBtn" style="padding: 0.5rem 1rem; border: none; background-color: #3498db; color: white; border-radius: 4px; cursor: pointer;">
+  배너 이미지 선택
+</button>
+
+<!-- 선택한 파일 목록 표시 -->
+<div id="selectedFiles" style="margin-top: 1rem; font-size: 0.9rem; color: #555;"></div>
+
+<script>
+  // '배너 이미지 선택' 버튼 클릭 시 파일 업로드 input을 클릭하도록 연결
+  document.getElementById('uploadBannerBtn').addEventListener('click', () => {
+    document.getElementById('bannerFiles').click();
+  });
+
+  // 파일 선택 시 호출되는 이벤트 핸들러
+  document.getElementById('bannerFiles').addEventListener('change', (event) => {
+    const files = event.target.files;
+    const selectedFilesDiv = document.getElementById('selectedFiles');
+    selectedFilesDiv.innerHTML = ''; // 기존 목록 초기화
+
+    if (files.length > 0) {
+      // 선택된 파일 이름 목록 표시
+      const fileList = Array.from(files).map(file => `<li>${file.name}</li>`).join('');
+      selectedFilesDiv.innerHTML = `<strong>선택된 파일:</strong><ul>${fileList}</ul>`;
+      
+      // 각 파일에 대해 기존 링크 생성 함수 호출
+      generateUrls();
+    } else {
+      selectedFilesDiv.innerHTML = '<em>선택된 파일이 없습니다.</em>';
+    }
+  });
+
+  // 기존 URL 생성 함수 (이미 정의된 generateUrls 함수 호출)
+  function generateUrls() {
+    // 기존 코드에서 작성한 URL 생성 로직을 여기에 추가하거나 유지하세요.
+    console.log('URL 생성 로직 호출됨');
+    // 예: 선택한 파일과 입력된 데이터를 기반으로 URL 생성
+  }
+</script>
 
   <div>
     <button onclick="generateUrls()">URL 생성</button>
