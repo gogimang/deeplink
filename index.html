@@ -49,16 +49,16 @@
       border-radius: 4px;
       font-weight: bold;
       cursor: pointer;
-      background: #ecf0f1; /* 기본 버튼 배경색 추가 */
+        background: #ecf0f1; /* 기본 버튼 배경색 추가 */
       color: #2c3e50; /* 기본 버튼 글자색 추가 */
-    }
+  }
 
-    button:hover {
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-      transform: translateY(-1px);
+  button:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
       background: #3498db;
       color: white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     /* 파일 업로드 버튼 스타일 */
@@ -73,6 +73,7 @@
         cursor: pointer;
         background: #ecf0f1; /* 기본 버튼 배경색 */
         color: #2c3e50; /* 기본 버튼 글자색 */
+        text-align: center; /* 텍스트 중앙 정렬 */
     }
 
     .file-upload-button:hover {
@@ -84,10 +85,10 @@
     }
 
     /* 실제 파일 입력 필드 숨기기 */
-    #bannerFiles {
+    #bannerFiles,
+    #importTemplatesFile { /* Import 파일 입력 필드도 숨김 */
         display: none;
     }
-
 
     .output {
       display: flex;
@@ -149,9 +150,11 @@
       margin-top: 0.4rem;
       font-size: 0.8rem;
     }
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
 
-    /* 아래 중복된 .card 스타일 제거 */
-    /*
     .card {
       background: #fff;
       border: 1px solid #ccc;
@@ -175,7 +178,6 @@
       background: #f4f4f4;
       padding: 0.3rem;
     }
-    */
 
     @media (max-width: 768px) {
       .card {
@@ -207,6 +209,13 @@
     .card, .card:hover, button, button:hover, .file-upload-button, .file-upload-button:hover {
       transition: all 0.25s ease-in-out;
     }
+
+     /* 선택된 파일 목록 스타일 */
+    #selectedFilesList {
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: #555;
+    }
   </style>
 
 </head>
@@ -222,12 +231,9 @@
   <button onclick="saveTemplate()">저장</button>
   <button onclick="deleteTemplate()">삭제</button>
   <button onclick="exportTemplates()">Export</button>
-  <label>
-    Import
-    <input type="file" onchange="importTemplates(event)" />
+  <label for="importTemplatesFile" class="file-upload-button"> Import
   </label>
-
-  <h2>캠페인 정보</h2>
+  <input type="file" id="importTemplatesFile" onchange="importTemplates(event)" /> <h2>캠페인 정보</h2>
   <button onclick="addRow()">＋ 행 추가</button>
   <table>
     <thead>
@@ -239,8 +245,7 @@
   <h2>배너 이미지 업로드</h2>
   <label for="bannerFiles" class="file-upload-button"> 이미지 선택
   </label>
-  <input type="file" id="bannerFiles" multiple /> <div>
-    <button onclick="generateUrls()">URL 생성</button>
+  <input type="file" id="bannerFiles" multiple onchange="displaySelectedFiles()" /> <div id="selectedFilesList"></div> <div> <button onclick="generateUrls()">URL 생성</button>
     <button onclick="clearAll()">초기화</button>
     <button onclick="downloadCSV()">CSV로 다운로드</button>
   </div>
@@ -274,8 +279,13 @@
       const text = (e.clipboardData || window.clipboardData).getData('text');
       const rows = text.split('\n').map(r => r.split('\t'));
       const startCell = e.target.closest('td');
+      if (!startCell) return; // Ensure a cell was the target
+
       const startRow = Array.from(document.querySelectorAll('#inputTable tr')).indexOf(startCell.parentElement);
+      const startCol = Array.from(startCell.parentElement.querySelectorAll('td')).indexOf(startCell); // 시작 열 인덱스 계산
+
       const table = document.getElementById('inputTable');
+
       rows.forEach((cols, i) => {
         let row = table.children[startRow + i];
         if (!row) {
@@ -283,11 +293,34 @@
           table.appendChild(row);
         }
         cols.forEach((val, j) => {
-          const input = row.children[j]?.firstChild;
-          if (input) input.value = val.trim();
+          const targetCellIndex = startCol + j; // 붙여넣을 타겟 셀의 인덱스 계산
+          // Ensure the target cell exists before trying to access its child
+          if (row.children[targetCellIndex]) {
+             const input = row.children[targetCellIndex].firstChild;
+             if (input) input.value = val.trim();
+          }
         });
       });
     }
+
+     // 선택된 파일 이름을 표시하는 함수
+    function displaySelectedFiles() {
+      const filesInput = document.getElementById('bannerFiles');
+      const selectedFilesList = document.getElementById('selectedFilesList');
+      selectedFilesList.innerHTML = ''; // 이전 목록 초기화
+
+      const files = filesInput.files;
+      if (files.length > 0) {
+        const fileNames = [];
+        for (let i = 0; i < files.length; i++) {
+          fileNames.push(files[i].name);
+        }
+        selectedFilesList.textContent = '선택된 파일: ' + fileNames.join(', ');
+      } else {
+        selectedFilesList.textContent = ''; // 파일이 선택되지 않은 경우
+      }
+    }
+
 
     function generateUrls() {
       const output = document.getElementById('output');
@@ -330,7 +363,8 @@
 
     function clearAll() {
       document.getElementById('inputTable').innerHTML = '';
-      document.getElementById('bannerFiles').value = '';
+      document.getElementById('bannerFiles').value = ''; // 파일 입력 필드 초기화
+      document.getElementById('selectedFilesList').innerHTML = ''; // 선택된 파일 목록 초기화
       document.getElementById('output').innerHTML = '';
       addRow();
     }
