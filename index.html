@@ -193,11 +193,10 @@
   <button onclick="saveTemplate()">保存</button>
   <button onclick="deleteTemplate()">削除</button>
   <button onclick="exportTemplates()">Export</button>
-  <label>
-    Import
-    <input type="file" onchange="importTemplates(event)" />
-  </label>
+  <button onclick="document.getElementById('fileInput').click()">Import</button>
 
+<input type="file" id="fileInput" style="display: none;" onchange="importTemplates(event)" /> 
+  
   <h2>キャンペーン情報</h2>
   <button onclick="addRow()">＋ 行追加</button>
   <table>
