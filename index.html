@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <title>Deeplink URL Generator</title>
@@ -49,6 +49,8 @@
       border-radius: 4px;
       font-weight: bold;
       cursor: pointer;
+      font-size: 1rem; /* Export 와 같은 크기 */
+      font-family: inherit; /* Export 와 같은 글꼴 */
   }
 
   button:hover {
@@ -178,6 +180,33 @@
     .card, .card:hover, button, button:hover {
       transition: all 0.25s ease-in-out;
     }
+
+    #importButton {
+      transition: all 0.2s ease;
+    
+      padding: 0.5rem 1rem;
+      margin: 0.5rem 0.5rem 1rem 0;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem; /* Export 와 같은 크기 */
+      font-family: inherit; /* Export 와 같은 글꼴 */
+      background: white; /* Export 와 같은 배경색 */
+      color: black; /* Export 와 같은 글자색 */
+    }
+
+    #importButton:hover {
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transform: translateY(-1px);
+      background: #3498db;
+      color: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    #fileInput {
+      display: none;
+    }
     </style>
 
 </head>
@@ -185,216 +214,12 @@
   <header style="box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 1rem 2rem; background: #fff; margin-bottom: 2rem;">
     <h1 style="margin: 0; font-size: 1.8rem; font-weight: 600; color: #333;">deeplinkmaker</h1>
   </header>
-  <h2>テンプレート</h2>
+  <h2>템플릿</h2>
   <select id="templateSelect" onchange="loadTemplate()">
-    <option value="">選択してください</option>
+    <option value="">선택하세요</option>
   </select>
-  <input type="text" id="templateName" placeholder="テンプレート名" />
-  <button onclick="saveTemplate()">保存</button>
-  <button onclick="deleteTemplate()">削除</button>
+  <input type="text" id="templateName" placeholder="템플릿 이름" />
+  <button onclick="saveTemplate()">저장</button>
+  <button onclick="deleteTemplate()">삭제</button>
   <button onclick="exportTemplates()">Export</button>
-  <label>
-    Import
-    <input type="file" onchange="importTemplates(event)" />
-  </label>
-
-  <h2>キャンペーン情報</h2>
-  <button onclick="addRow()">＋ 行追加</button>
-  <table>
-    <thead>
-      <tr><th>Source</th><th>AppID</th><th>Campaign</th><th>Adgroup</th></tr>
-    </thead>
-    <tbody id="inputTable"></tbody>
-  </table>
-
-  <h2>バナー画像アップロード</h2>
-  <input type="file" id="bannerFiles" multiple />
-
-  <div>
-    <button onclick="generateUrls()">URL生成</button>
-    <button onclick="clearAll()">クリア</button>
-    <button onclick="downloadCSV()">CSVでDL</button>
-  </div>
-
-  <h2>生成結果</h2>
-  <div class="output" id="output"></div>
-
-  <script>
-    const templateKey = "deeplinkTemplates";
-
-    function createRow(data = {}) {
-      const row = document.createElement('tr');
-      ['source', 'appid', 'campaign', 'adgroup'].forEach(key => {
-        const td = document.createElement('td');
-        const input = document.createElement('input');
-        input.value = data[key] || '';
-        input.setAttribute('onpaste', 'handlePaste(event)');
-        td.appendChild(input);
-        row.appendChild(td);
-      });
-      return row;
-    }
-
-    function addRow(data = {}) {
-      const table = document.getElementById('inputTable');
-      table.appendChild(createRow(data));
-    }
-
-    function handlePaste(e) {
-      e.preventDefault();
-      const text = (e.clipboardData || window.clipboardData).getData('text');
-      const rows = text.split('\n').map(r => r.split('\t'));
-      const startCell = e.target.closest('td');
-      const startRow = Array.from(document.querySelectorAll('#inputTable tr')).indexOf(startCell.parentElement);
-      const table = document.getElementById('inputTable');
-      rows.forEach((cols, i) => {
-        let row = table.children[startRow + i];
-        if (!row) {
-          row = createRow();
-          table.appendChild(row);
-        }
-        cols.forEach((val, j) => {
-          const input = row.children[j]?.firstChild;
-          if (input) input.value = val.trim();
-        });
-      });
-    }
-
-    function generateUrls() {
-      const output = document.getElementById('output');
-      output.innerHTML = '';
-      const rows = document.querySelectorAll('#inputTable tr');
-      const files = document.getElementById('bannerFiles').files;
-      const all = [];
-
-      rows.forEach(row => {
-        const [source, appid, campaign, adgroup] = Array.from(row.querySelectorAll('input')).map(i => i.value.trim());
-        if (!(source && appid && campaign && adgroup)) return;
-
-        Array.from(files).forEach(file => {
-          const content = encodeURIComponent(file.name);
-          const url = `https://platform-sc.g123.jp/micro-app/auxin/landing-page/deeplink.html?callback=h5.g123.jp%2Fgame%2F${appid}%3Fplatform%3Dauto%26utm_source%3D${source}%26utm_campaign%3D${campaign}%26utm_adgroup%3D${adgroup}%26lang%3Dja%26utm_content%3D${content}`;
-          const div = document.createElement('div');
-          div.className = 'card';
-          div.innerHTML = `
-      <img src="${URL.createObjectURL(file)}" />
-      <div class="info">
-        <table>
-          <tr><td><strong>Campaign:</strong></td><td>${campaign}</td></tr>
-          <tr><td><strong>Adgroup:</strong></td><td>${adgroup}</td></tr>
-          <tr><td><strong>File:</strong></td><td>${file.name}</td></tr>
-        </table>
-        <code>${url}</code>
-        <button onclick="copyUrl('${url}')">コピー</button>
-      </div>`;
-          output.appendChild(div);
-          all.push([campaign, adgroup, file.name, url]);
-        });
-      });
-
-      output.dataset.csv = JSON.stringify(all);
-    }
-
-    function copyUrl(url) {
-      navigator.clipboard.writeText(url).then(() => alert('コピーしました'));
-    }
-
-    function clearAll() {
-      document.getElementById('inputTable').innerHTML = '';
-      document.getElementById('bannerFiles').value = '';
-      document.getElementById('output').innerHTML = '';
-      addRow();
-    }
-
-    function downloadCSV() {
-      const rows = JSON.parse(document.getElementById('output').dataset.csv || '[]');
-      let csv = 'キャンペーン,アドグループ,ファイル名,URL\n';
-      rows.forEach(r => {
-        csv += r.map(v => `"${v.replace(/"/g, '""')}"`).join(',') + '\n';
-      });
-      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-      const blob = new Blob([bom, csv], { type: 'text/csv' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'deeplinks.csv';
-      a.click();
-    }
-
-    function saveTemplate() {
-      const name = document.getElementById('templateName').value.trim();
-      if (!name) return alert('テンプレート名を入力してください');
-      const data = [];
-      document.querySelectorAll('#inputTable tr').forEach(tr => {
-        const [source, appid, campaign, adgroup] = Array.from(tr.querySelectorAll('input')).map(i => i.value.trim());
-        if (source && appid && campaign && adgroup) {
-          data.push({ source, appid, campaign, adgroup });
-        }
-      });
-      const templates = JSON.parse(localStorage.getItem(templateKey) || '{}');
-      templates[name] = data;
-      localStorage.setItem(templateKey, JSON.stringify(templates));
-      populateTemplates();
-    }
-
-    function loadTemplate() {
-      const name = document.getElementById('templateSelect').value;
-      if (!name) return;
-      const templates = JSON.parse(localStorage.getItem(templateKey) || '{}');
-      const data = templates[name];
-      if (!data) return;
-      const tbody = document.getElementById('inputTable');
-      tbody.innerHTML = '';
-      data.forEach(row => addRow(row));
-    }
-
-    function deleteTemplate() {
-      const name = document.getElementById('templateSelect').value;
-      const templates = JSON.parse(localStorage.getItem(templateKey) || '{}');
-      delete templates[name];
-      localStorage.setItem(templateKey, JSON.stringify(templates));
-      populateTemplates();
-    }
-
-    function exportTemplates() {
-      const blob = new Blob([localStorage.getItem(templateKey)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'templates.json';
-      a.click();
-    }
-
-    function importTemplates(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const data = JSON.parse(reader.result);
-          localStorage.setItem(templateKey, JSON.stringify(data));
-          populateTemplates();
-        } catch {
-          alert('不正なJSONです');
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function populateTemplates() {
-      const select = document.getElementById('templateSelect');
-      const templates = JSON.parse(localStorage.getItem(templateKey) || '{}');
-      select.innerHTML = '<option value="">選択してください</option>';
-      Object.keys(templates).forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        option.textContent = name;
-        select.appendChild(option);
-      });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      populateTemplates();
-      addRow();
-    });
-  </script>
-</body>
-</html>
+  <button id="importButton" onclick="document.getElementById('fileInput').click()">
