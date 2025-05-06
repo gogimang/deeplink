@@ -190,15 +190,15 @@
     <option value="">選択してください</option>
   </select>
   <input type="text" id="templateName" placeholder="テンプレート名" />
-  <button onclick="saveTemplate()">保存</button>
-  <button onclick="deleteTemplate()">削除</button>
+  <button onclick="saveTemplate()">저장</button>
+  <button onclick="deleteTemplate()">삭제</button>
   <button onclick="exportTemplates()">Export</button>
   <button onclick="document.getElementById('fileInput').click()">Import</button>
 
 <input type="file" id="fileInput" style="display: none;" onchange="importTemplates(event)" /> 
   
-  <h2>キャンペーン情報</h2>
-  <button onclick="addRow()">＋ 行追加</button>
+  <h2>캠페인 정보</h2>
+  <button onclick="addRow()">＋ 추가</button>
   <table>
     <thead>
       <tr><th>Source</th><th>AppID</th><th>Campaign</th><th>Adgroup</th></tr>
@@ -206,16 +206,16 @@
     <tbody id="inputTable"></tbody>
   </table>
 
-  <h2>バナー画像アップロード</h2>
+  <h2>배너파일 업로드</h2>
   <input type="file" id="bannerFiles" multiple />
 
   <div>
-    <button onclick="generateUrls()">URL生成</button>
-    <button onclick="clearAll()">クリア</button>
-    <button onclick="downloadCSV()">CSVでDL</button>
+    <button onclick="generateUrls()">URL생성</button>
+    <button onclick="clearAll()">초기화</button>
+    <button onclick="downloadCSV()">CSV다운로드</button>
   </div>
 
-  <h2>生成結果</h2>
+  <h2>생성결과</h2>
   <div class="output" id="output"></div>
 
   <script>
