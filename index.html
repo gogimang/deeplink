@@ -193,10 +193,9 @@
   <button onclick="saveTemplate()">저장</button>
   <button onclick="deleteTemplate()">삭제</button>
   <button onclick="exportTemplates()">Export</button>
-  <label>
-    Import
-    <input type="file" onchange="importTemplates(event)" />
-  </label>
+  <button onclick="document.getElementById('importFileInput').click()">Import</button>
+<input type="file" id="importFileInput" style="display: none;" onchange="importTemplates(event)" />
+
 
   <h2>캠페인 정보</h2>
   <button onclick="addRow()">＋ 행추가</button>
