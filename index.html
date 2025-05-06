@@ -240,26 +240,39 @@
       table.appendChild(createRow(data));
     }
 
-    function handlePaste(e) {
-      e.preventDefault();
-      const text = (e.clipboardData || window.clipboardData).getData('text');
-      const rows = text.split('\n').map(r => r.split('\t'));
-      const startCell = e.target.closest('td');
-      const startRow = Array.from(document.querySelectorAll('#inputTable tr')).indexOf(startCell.parentElement);
-      const table = document.getElementById('inputTable');
-      rows.forEach((cols, i) => {
-        let row = table.children[startRow + i];
-        if (!row) {
-          row = createRow();
-          table.appendChild(row);
-        }
-        cols.forEach((val, j) => {
-          const input = row.children[j]?.firstChild;
-          if (input) input.value = val.trim();
-        });
-      });
+function handlePaste(e) {
+  e.preventDefault();
+
+  // 붙여넣기 데이터 가져오기
+  const text = (e.clipboardData || window.clipboardData).getData('text');
+  const rows = text.split('\n').map(r => r.split('\t')); // 행 단위로 나누고 각 행을 탭으로 구분
+
+  // 붙여넣기 시작 위치 (행과 열 계산)
+  const startCell = e.target.closest('td'); // 현재 셀
+  const startRow = Array.from(document.querySelectorAll('#inputTable tr')).indexOf(startCell.parentElement); // 시작 행
+  const startCol = Array.from(startCell.parentElement.children).indexOf(startCell); // 시작 열
+
+  const table = document.getElementById('inputTable'); // 테이블 가져오기
+
+  // 붙여넣기 데이터 삽입
+  rows.forEach((cols, rowIndex) => {
+    let row = table.children[startRow + rowIndex]; // 현재 행
+    if (!row) {
+      row = createRow(); // 행이 없으면 새로 생성
+      table.appendChild(row);
     }
 
+    // 열 데이터 삽입
+    cols.forEach((value, colIndex) => {
+      const cellIndex = startCol + colIndex; // 시작 열부터 데이터 삽입
+      const input = row.children[cellIndex]?.firstChild; // 해당 셀의 input 요소 가져오기
+      if (input) {
+        input.value = value.trim(); // 값 삽입
+      }
+    });
+  });
+}
+    
     function generateUrls() {
       const output = document.getElementById('output');
       output.innerHTML = '';
