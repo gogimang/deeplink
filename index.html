@@ -207,8 +207,20 @@
     <tbody id="inputTable"></tbody>
   </table>
 
-  <h2>배너 이미지 업로드</h2>
-  <input type="file" id="bannerFiles" multiple />
+<h2>배너 이미지 업로드</h2>
+<!-- 숨겨진 파일 업로드 input -->
+<input type="file" id="bannerFiles" multiple style="display: none;" />
+<!-- 파일 업로드를 트리거하는 버튼 -->
+<button id="uploadBannerBtn" style="padding: 0.5rem 1rem; border: none; background-color: #3498db; color: white; border-radius: 4px; cursor: pointer;">
+  배너 이미지 선택
+</button>
+
+<script>
+  // '배너 이미지 선택' 버튼 클릭 시 파일 업로드 input을 클릭하도록 연결
+  document.getElementById('uploadBannerBtn').addEventListener('click', () => {
+    document.getElementById('bannerFiles').click();
+  });
+</script>
 
   <div>
     <button onclick="generateUrls()">URL 생성</button>
