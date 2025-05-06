@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <title>Deeplink URL Generator</title>
@@ -185,21 +185,19 @@
   <header style="box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 1rem 2rem; background: #fff; margin-bottom: 2rem;">
     <h1 style="margin: 0; font-size: 1.8rem; font-weight: 600; color: #333;">deeplinkmaker</h1>
   </header>
-  <h2>テンプレート</h2>
+  <h2>템플릿</h2>
   <select id="templateSelect" onchange="loadTemplate()">
     <option value="">選択してください</option>
   </select>
   <input type="text" id="templateName" placeholder="テンプレート名" />
-  <button onclick="saveTemplate()">保存</button>
-  <button onclick="deleteTemplate()">削除</button>
+  <button onclick="saveTemplate()">저장</button>
+  <button onclick="deleteTemplate()">삭제</button>
   <button onclick="exportTemplates()">Export</button>
-  <label>
-    Import
-    <input type="file" onchange="importTemplates(event)" />
-  </label>
+<button onclick="document.getElementById('importFileInput').click()">Import</button>
+<input type="file" id="importFileInput" style="display: none;" onchange="importTemplates(event)" />
 
-  <h2>キャンペーン情報</h2>
-  <button onclick="addRow()">＋ 行追加</button>
+  <h2>캠페인 정보</h2>
+  <button onclick="addRow()">＋ 행추가</button>
   <table>
     <thead>
       <tr><th>Source</th><th>AppID</th><th>Campaign</th><th>Adgroup</th></tr>
@@ -207,16 +205,16 @@
     <tbody id="inputTable"></tbody>
   </table>
 
-  <h2>バナー画像アップロード</h2>
+  <h2>배너 파일 업로드</h2>
   <input type="file" id="bannerFiles" multiple />
 
   <div>
-    <button onclick="generateUrls()">URL生成</button>
-    <button onclick="clearAll()">クリア</button>
-    <button onclick="downloadCSV()">CSVでDL</button>
+    <button onclick="generateUrls()">URL생성</button>
+    <button onclick="clearAll()">초기화</button>
+    <button onclick="downloadCSV()">CSV다운로드</button>
   </div>
 
-  <h2>生成結果</h2>
+  <h2>생성결과</h2>
   <div class="output" id="output"></div>
 
   <script>
@@ -235,30 +233,38 @@
       return row;
     }
 
-    function addRow(data = {}) {
-      const table = document.getElementById('inputTable');
-      table.appendChild(createRow(data));
+    function handlePaste(e) {
+  e.preventDefault();
+
+  // 붙여넣기 데이터 가져오기
+  const text = (e.clipboardData || window.clipboardData).getData('text');
+  const rows = text.split('\n').map(r => r.split('\t')); // 행 단위로 나누고 각 행을 탭으로 구분
+
+  // 붙여넣기 시작 위치 (행과 열 계산)
+  const startCell = e.target.closest('td'); // 현재 셀
+  const startRow = Array.from(document.querySelectorAll('#inputTable tr')).indexOf(startCell.parentElement); // 시작 행
+  const startCol = Array.from(startCell.parentElement.children).indexOf(startCell); // 시작 열
+
+  const table = document.getElementById('inputTable'); // 테이블 가져오기
+
+  // 붙여넣기 데이터 삽입
+  rows.forEach((cols, rowIndex) => {
+    let row = table.children[startRow + rowIndex]; // 현재 행
+    if (!row) {
+      row = createRow(); // 행이 없으면 새로 생성
+      table.appendChild(row);
     }
 
-    function handlePaste(e) {
-      e.preventDefault();
-      const text = (e.clipboardData || window.clipboardData).getData('text');
-      const rows = text.split('\n').map(r => r.split('\t'));
-      const startCell = e.target.closest('td');
-      const startRow = Array.from(document.querySelectorAll('#inputTable tr')).indexOf(startCell.parentElement);
-      const table = document.getElementById('inputTable');
-      rows.forEach((cols, i) => {
-        let row = table.children[startRow + i];
-        if (!row) {
-          row = createRow();
-          table.appendChild(row);
-        }
-        cols.forEach((val, j) => {
-          const input = row.children[j]?.firstChild;
-          if (input) input.value = val.trim();
-        });
-      });
-    }
+    // 열 데이터 삽입
+    cols.forEach((value, colIndex) => {
+      const cellIndex = startCol + colIndex; // 시작 열부터 데이터 삽입
+      const input = row.children[cellIndex]?.firstChild; // 해당 셀의 input 요소 가져오기
+      if (input) {
+        input.value = value.trim(); // 값 삽입
+      }
+    });
+  });
+}
 
     function generateUrls() {
       const output = document.getElementById('output');
