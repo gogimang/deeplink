@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>딥링크 URL 생성기</title>
+  <title>Deeplink URL Generator</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -84,8 +84,7 @@
     }
 
     /* 실제 파일 입력 필드 숨기기 */
-    #bannerFiles,
-    #importTemplatesFile {
+    #bannerFiles {
         display: none;
     }
 
@@ -213,7 +212,7 @@
 </head>
 <body>
   <header style="box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 1rem 2rem; background: #fff; margin-bottom: 2rem;">
-    <h1 style="margin: 0; font-size: 1.8rem; font-weight: 600; color: #333;">딥링크메이커</h1>
+    <h1 style="margin: 0; font-size: 1.8rem; font-weight: 600; color: #333;">deeplinkmaker</h1>
   </header>
   <h2>템플릿</h2>
   <select id="templateSelect" onchange="loadTemplate()">
@@ -223,13 +222,16 @@
   <button onclick="saveTemplate()">저장</button>
   <button onclick="deleteTemplate()">삭제</button>
   <button onclick="exportTemplates()">Export</button>
-  <label for="importTemplatesFile" class="file-upload-button"> Import
+  <label>
+    Import
+    <input type="file" onchange="importTemplates(event)" />
   </label>
-  <input type="file" id="importTemplatesFile" onchange="importTemplates(event)" /> <h2>캠페인 정보</h2>
+
+  <h2>캠페인 정보</h2>
   <button onclick="addRow()">＋ 행 추가</button>
   <table>
     <thead>
-      <tr><th>소스</th><th>AppID</th><th>캠페인</th><th>애드그룹</th></tr>
+      <tr><th>Source</th><th>AppID</th><th>Campaign</th><th>Adgroup</th></tr>
     </thead>
     <tbody id="inputTable"></tbody>
   </table>
@@ -304,15 +306,15 @@
           const div = document.createElement('div');
           div.className = 'card';
           div.innerHTML = `
-          <img src="<span class="math-inline">\{URL\.createObjectURL\(file\)\}" /\>
-<div class\="info"\>
-<table\>
-<tr\><td\><strong\>Campaign\:</strong\></td\><td\></span>{campaign}</td></tr>
-              <tr><td><strong>Adgroup:</strong></td><td><span class="math-inline">\{adgroup\}</td\></tr\>
-<tr\><td\><strong\>File\:</strong\></td\><td\></span>{file.name}</td></tr>
+          <img src="${URL.createObjectURL(file)}" />
+          <div class="info">
+            <table>
+              <tr><td><strong>Campaign:</strong></td><td>${campaign}</td></tr>
+              <tr><td><strong>Adgroup:</strong></td><td>${adgroup}</td></tr>
+              <tr><td><strong>File:</strong></td><td>${file.name}</td></tr>
             </table>
-            <code><span class="math-inline">\{url\}</code\>
-<button onclick\="copyUrl\('</span>{url}')">복사</button>
+            <code>${url}</code>
+            <button onclick="copyUrl('${url}')">복사</button>
           </div>`;
           output.appendChild(div);
           all.push([campaign, adgroup, file.name, url]);
@@ -343,4 +345,85 @@
       const blob = new Blob([bom, csv], { type: 'text/csv' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a
+      a.download = 'deeplinks.csv';
+      a.click();
+    }
+
+    function saveTemplate() {
+      const name = document.getElementById('templateName').value.trim();
+      if (!name) return alert('템플릿 이름을 입력해주세요'); /* 알림 메시지 번역 */
+      const data = [];
+      document.querySelectorAll('#inputTable tr').forEach(tr => {
+        const [source, appid, campaign, adgroup] = Array.from(tr.querySelectorAll('input')).map(i => i.value.trim());
+        if (source && appid && campaign && adgroup) {
+          data.push({ source, appid, campaign, adgroup });
+        }
+      });
+      const templates = JSON.parse(localStorage.getItem(templateKey) || '{}');
+      templates[name] = data;
+      localStorage.setItem(templateKey, JSON.stringify(templates));
+      populateTemplates();
+    }
+
+    function loadTemplate() {
+      const name = document.getElementById('templateSelect').value;
+      if (!name) return;
+      const templates = JSON.parse(localStorage.getItem(templateKey) || '{}');
+      const data = templates[name];
+      if (!data) return;
+      const tbody = document.getElementById('inputTable');
+      tbody.innerHTML = '';
+      data.forEach(row => addRow(row));
+    }
+
+    function deleteTemplate() {
+      const name = document.getElementById('templateSelect').value;
+      const templates = JSON.parse(localStorage.getItem(templateKey) || '{}');
+      delete templates[name];
+      localStorage.setItem(templateKey, JSON.stringify(templates));
+      populateTemplates();
+    }
+
+    function exportTemplates() {
+      const blob = new Blob([localStorage.getItem(templateKey)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'templates.json';
+      a.click();
+    }
+
+    function importTemplates(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          localStorage.setItem(templateKey, JSON.stringify(data));
+          populateTemplates();
+        } catch {
+          alert('잘못된 JSON 형식입니다'); /* 알림 메시지 번역 */
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function populateTemplates() {
+      const select = document.getElementById('templateSelect');
+      const templates = JSON.parse(localStorage.getItem(templateKey) || '{}');
+      select.innerHTML = '<option value="">선택해주세요</option>'; /* 옵션 텍스트 번역 */
+      Object.keys(templates).forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      populateTemplates();
+      addRow();
+    });
+  </script>
+</body>
+</html>
