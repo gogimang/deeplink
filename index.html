@@ -294,7 +294,7 @@
         <table>
           <tr><td><strong>Campaign:</strong></td><td>${campaign}</td></tr>
           <tr><td><strong>Adgroup:</strong></td><td>${adgroup}</td></tr>
-          <tr><td><strong>File:</strong></td><td>${file.name}</td></tr>
+          <tr><td><strong>File:</strong></td><td>${file.name} <button onclick="copyFileName('${file.name}')" style="padding: 2px 6px; font-size: 0.7rem; margin: 0 0 0 5px; vertical-align: middle;">복사</button></td></tr>
         </table>
         <code>${url}</code>
         <button onclick="copyUrl('${url}')">コピー</button>
@@ -309,6 +309,10 @@
 
     function copyUrl(url) {
       navigator.clipboard.writeText(url).then(() => alert('コピーしました'));
+    }
+
+    function copyFileName(fileName) {
+      navigator.clipboard.writeText(fileName).then(() => alert('복사 완료: ' + fileName));
     }
 
     function clearAll() {
